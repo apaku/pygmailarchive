@@ -101,8 +101,12 @@ def setupArchiveDir(archivedir):
     return archivedir
 
 def archiveMails(imapcon, destination, excludes, recursiveExcludes):
-    log("Archiving mails")
-    pass
+    log("Archiving mails, excluding: %s, recursivly: %s" %(excludes, recursiveExcludes))
+    folders = []
+    for folder in imapcon.list_folders():
+        if not(folder[2] in excludes or len([x for x in recursiveExcludes if folder[2].startswith(x)]) > 0):
+            folders.append(folder[2])
+    log("Archiving folders: %s" %(folders,))
 
 def main():
     parser = argparse.ArgumentParser(
