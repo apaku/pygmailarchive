@@ -87,6 +87,13 @@ def disconnectFromGMail(imapcon):
     log("Logging out from imap.gmail.com")
     imapcon.logout()
 
+def setupArchiveDir(archivedir):
+    if not os.path.isabs(archivedir):
+        archivedir = os.path.join(os.getcwd(), archivedir)
+    if not os.path.exists(archivedir):
+        os.makedirs(archivedir)
+    return archivedir
+
 def archiveMails(imapcon, destination, excludes, recursiveExcludes):
     log("Archiving mails")
     pass
@@ -117,10 +124,12 @@ def main():
 
     (username, password) = readCredentials(args.credentialsfile, args.username, args.password)
 
+    archivedir = setupArchiveDir(args.archivedir)
+
     imapcon = connectToGMail(username, password)
 
     try:
-        archiveMails(imapcon, args.archivedir, args.excludes, args.recursiveExcludes)
+        archiveMails(imapcon, archivedir, args.excludes, args.recursiveExcludes)
     finally:
         disconnectFromGMail(imapcon)
 
