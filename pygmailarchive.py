@@ -38,7 +38,7 @@ import stat
 import sys
 import time
 import argparse
-import imaplib
+import imapclient
 import getpass
 
 def log(message):
@@ -78,9 +78,9 @@ def readCredentials(credentialsfile, username, password):
     return (username, password)
 
 def connectToGMail(username, password):
-    imapcon = imaplib.IMAP4_SSL("imap.gmail.com")
+    imapcon = imapclient.IMAPClient("imap.gmail.com", ssl=True)
     imapcon.login(username, password)
-    log("Logged in on imap.gmail.com, capabilities: %s" %(imapcon.capabilities,))
+    log("Logged in on imap.gmail.com, capabilities: %s" %(imapcon.capabilities(),))
     return imapcon
 
 def disconnectFromGMail(imapcon):
