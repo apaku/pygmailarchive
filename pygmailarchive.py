@@ -2,7 +2,10 @@
 
 """Archive your gmail mailbox to a local directory.  Supports excluding tags,
 optionally recursively and stores the mails in the same hierarchy as seen via
-IMAP
+IMAP. Messages with multiple labels will be fetched into the first folder that
+is seen containing them. This means in particular that the "All Mail" folder
+will not necessarily contain all messages in case the mails have other labels.
+This tool will not download the Spam or Trash folders at the moment.
 
 Copyright (c) 2012, Andreas Pakulat <apaku@gmx.de>
 All rights reserved.
@@ -27,6 +30,9 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+
+#TODO: Improve handling of mails in folders and in All Mail
+#TODO: Optionally download spam and/or trash
 
 __version__ = '0.1'
 
@@ -112,9 +118,9 @@ def main():
     parser.add_argument('-c', '--credentials', dest='credentialsfile',
         help='Plain text file specifying username and password. Must contain 2 lines, first one with the username, second with the password. The file needs to be readable only by the current user')
     parser.add_argument('-x', '--exclude', action='append', dest='excludes',
-        help='Exclude the given tag.')
+        default=[], help='Exclude the given tag.')
     parser.add_argument('-X', '--exclude-recursive', action='append', dest='recursiveExcludes',
-        help='Exclude the given tag and recursively all tags that are sub-tags of the given one.')
+        default=[], help='Exclude the given tag and recursively all tags that are sub-tags of the given one. The tag needs to be given as full path, i.e. to exclude foo/bar/baz and foo/bar/bar you need to specify foo/bar.')
     parser.add_argument('archivedir',
         help='Directory where to store the downloaded imap folders. Will also contain metadata to avoid re-downloading all files.')
 
