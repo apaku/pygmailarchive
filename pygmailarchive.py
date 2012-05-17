@@ -85,6 +85,8 @@ def readCredentials(credentialsfile, username, password):
 
 def connectToGMail(username, password):
     imapcon = imapclient.IMAPClient("imap.gmail.com", ssl=True)
+    # Fetch datetime info with timezone info
+    imapcon.normalise_times = False
     imapcon.login(username, password)
     log("Logged in on imap.gmail.com, capabilities: %s" %(imapcon.capabilities(),))
     return imapcon
