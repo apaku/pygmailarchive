@@ -37,30 +37,58 @@ import os
 import sys
 import time
 import argparse
+import imaplib
+import getpass
 
 def log(message):
     print '[%s]: %s' % (time.strftime('%H:%M:%S'), message)
+
+def connectToGMail(username, password):
+    imapcon = imaplib.IMAP4_SSL("imap.gmail.com")
+    if username is None:
+        username = raw_input("Username: ")
+    if password is None:
+        password = getpass.getpass()
+    imapcon.login(username, password)
+    log("Logged in on imap.gmail.com, capabilities: %s" %(imapcon.capabilities,))
+    return imapcon
+
+def disconnectFromGMail(imapcon):
+    log("Logging out from imap.gmail.com")
+    imapcon.logout()
+
+def archiveMails(imapcon, destination, excludes, recursiveExcludes):
+    log("Archiving mails")
+    pass
 
 def main():
     parser = argparse.ArgumentParser(
         description=__doc__,
     )
 
-    parser.add_argument('-v', '--version', action='version', 
+    parser.add_argument('-v', '--version', action='version',
         version=__version__)
-    parser.add_argument('-p', '--password', dest='password', required=True,
+    parser.add_argument('-p', '--password', dest='password',
         help='Password to log into Gmail.')
-    parser.add_argument('-u', '--username', dest='username', required=True,
+    parser.add_argument('-u', '--username', dest='username',
         help='Username to log into Gmail.')
-    parser.add_argument('-x', '--exclude', action='append', dest='exclude',
+    parser.add_argument('-x', '--exclude', action='append', dest='excludes',
         help='Exclude the given tag.')
-    parser.add_argument('-X', '--exclude-recursive', action='append', dest='exclude',
+    parser.add_argument('-X', '--exclude-recursive', action='append', dest='recursiveExcludes',
         help='Exclude the given tag and recursively all tags that are sub-tags of the given one.')
     parser.add_argument('archivedir',
         help='Directory where to store the downloaded imap folders. Will also contain metadata to avoid re-downloading all files.')
 
     args = parser.parse_args()
-    log(args)
+
+    log("Arguments: %s" %(args,))
+
+    imapcon = connectToGMail(args.username, args.password)
+
+    try:
+        archiveMails(imapcon, args.archivedir, args.excludes, args.recursiveExcludes)
+    finally:
+        disconnectFromGMail(imapcon)
 
 if __name__ == '__main__':
     main()
