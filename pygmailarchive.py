@@ -34,6 +34,7 @@ import email
 import email.Header
 import email.Utils
 import os
+import stat
 import sys
 import time
 import argparse
@@ -43,12 +44,41 @@ import getpass
 def log(message):
     print '[%s]: %s' % (time.strftime('%H:%M:%S'), message)
 
-def connectToGMail(username, password):
-    imapcon = imaplib.IMAP4_SSL("imap.gmail.com")
+def isUserReadWritableOnly(mode):
+    return bool(stat.S_IRUSR & mode) and not (
+            bool(stat.S_IXUSR & mode) or
+            bool(stat.S_IRGRP & mode) or
+            bool(stat.S_IWGRP & mode) or
+            bool(stat.S_IXGRP & mode) or
+            bool(stat.S_IROTH & mode) or
+            bool(stat.S_IWOTH & mode) or
+            bool(stat.S_IXOTH & mode) )
+
+def readCredentials(credentialsfile, username, password):
+    if credentialsfile is not None:
+        if not os.path.exists(credentialsfile):
+            raise Exception("Non-existing credentials file specified: '%s'" %(credentialsfile,))
+        status = os.stat(credentialsfile)
+        mode = status.st_mode
+        if not stat.S_ISREG(mode):
+            raise Exception("Credentials filename does not point to a regular file: '%s'" %(credentialsfile,))
+        if not os.access(credentialsfile, os.R_OK):
+            raise Exception("Credentials file '%s' is not readable by current user" %(credentialsfile,))
+        if not isUserReadWritableOnly(mode):
+            raise Exception("Credentials file '%s' is readable by other users, possible security problem, aborting." %(credentialsfile,))
+        lines = open(credentialsfile).readlines()
+        if len(lines) != 2:
+            raise Exception("Invalid credentials file '%s', needs to have 2 lines, first containing the username, second line containing the password: '%s'" %(credentialsfile, ''.join(lines)))
+        username = lines[0].strip()
+        password = lines[1].strip()
     if username is None:
         username = raw_input("Username: ")
     if password is None:
         password = getpass.getpass()
+    return (username, password)
+
+def connectToGMail(username, password):
+    imapcon = imaplib.IMAP4_SSL("imap.gmail.com")
     imapcon.login(username, password)
     log("Logged in on imap.gmail.com, capabilities: %s" %(imapcon.capabilities,))
     return imapcon
@@ -72,6 +102,8 @@ def main():
         help='Password to log into Gmail.')
     parser.add_argument('-u', '--username', dest='username',
         help='Username to log into Gmail.')
+    parser.add_argument('-c', '--credentials', dest='credentialsfile',
+        help='Plain text file specifying username and password. Must contain 2 lines, first one with the username, second with the password. The file needs to be readable only by the current user')
     parser.add_argument('-x', '--exclude', action='append', dest='excludes',
         help='Exclude the given tag.')
     parser.add_argument('-X', '--exclude-recursive', action='append', dest='recursiveExcludes',
@@ -83,7 +115,9 @@ def main():
 
     log("Arguments: %s" %(args,))
 
-    imapcon = connectToGMail(args.username, args.password)
+    (username, password) = readCredentials(args.credentialsfile, args.username, args.password)
+
+    imapcon = connectToGMail(username, password)
 
     try:
         archiveMails(imapcon, args.archivedir, args.excludes, args.recursiveExcludes)
