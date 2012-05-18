@@ -196,6 +196,7 @@ def archiveMails(imapcon, destination, excludes, recursiveExcludes):
 def main():
     parser = argparse.ArgumentParser(
         description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
     parser.add_argument('-v', '--version', action='version',
