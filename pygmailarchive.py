@@ -6,6 +6,7 @@ IMAP. Messages with multiple labels will be fetched into the first folder that
 is seen containing them. This means in particular that the "All Mail" folder
 will not necessarily contain all messages in case the mails have other labels.
 This tool will not download the Spam or Trash folders at the moment.
+This tool will not delete mails locally that have been deleted remotely.
 
 Copyright (c) 2012, Andreas Pakulat <apaku@gmx.de>
 All rights reserved.
@@ -46,6 +47,10 @@ import time
 import argparse
 import imapclient
 import getpass
+import string
+import re
+import unicodedata
+import mailbox
 
 def log(message):
     print '[%s]: %s' % (time.strftime('%H:%M:%S'), message)
@@ -102,13 +107,29 @@ def setupArchiveDir(archivedir):
         os.makedirs(archivedir)
     return archivedir
 
+def makeFSCompatible(name):
+    name = unicodedata.normalize('NFKD', name).encode('ascii', 'ignore')
+    valid_chars_re = '[^-_.()\[\]{} %s%s]' %(string.ascii_letters, string.digits)
+    return unicode(re.sub(valid_chars_re, '_', name))
+
+def createMaildirs(destination, fsfoldername):
+    abspath = os.path.join(destination, fsfoldername[0])
+    md = mailbox.Maildir(abspath)
+    for folder in fsfoldername[1:]:
+        md = md.add_folder(folder)
+    return md
+
 def archiveMails(imapcon, destination, excludes, recursiveExcludes):
     log("Archiving mails, excluding: %s, recursivly: %s" %(excludes, recursiveExcludes))
     folders = []
     for folder in imapcon.list_folders():
         if not(folder[2] in excludes or len([x for x in recursiveExcludes if folder[2].startswith(x)]) > 0):
-            folders.append(folder[2])
-    log("Archiving folders: %s" %(folders,))
+            foldername = folder[2]
+            foldersep = folder[1]
+            fsfoldername = [makeFSCompatible(fname) for fname in foldername.split(foldersep)]
+            # Create the mailboxes
+            targetmd = createMaildirs(destination, fsfoldername)
+            log("Using local maildir: %s - %s" %(fsfoldername,targetmd._path))
 
 def main():
     parser = argparse.ArgumentParser(
