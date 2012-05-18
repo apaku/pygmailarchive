@@ -1,0 +1,25 @@
+pygmailarchive a commandline tool to archive a GMail account to a local Maildir directory.
+
+This tool is licensed under the "Simplified BSD License", see LICENSE for details.
+
+pygmailarchive downloads all mails from your GMail account via IMAP, storing them in the same structure
+as they are presented on the IMAP server. This means all your labels and sub-labels will be converted into
+Maildir folders in the destination folder.
+
+You can exclude certain labels or even a complete label-hierarchy easily. This is useful for people having
+lists or emails that are already archived elsewhere.
+
+Subsequent executions of the tool will download all mails that haven't been fetched so far, the tool keeps
+a list of 'already seen mails' along with the Maildir's.
+
+The main intent is to copy the Mails from gmail to your own machine to archive or backup them.
+
+Requirements:
+ * Python 2.7
+ * IMAPClient (http://imapclient.freshfoo.com/)
+
+Howto use:
+pygmailarchive gmailarchive/
+
+See pygmailarchive --help for more options
+
