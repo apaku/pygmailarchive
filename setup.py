@@ -14,7 +14,7 @@ setup(
         author = "Andreas Pakulat",
         author_email = "apaku@gmx.de",
         description = ("An utility to archive Mails from GMail accounts."),
-        license = "Simplified BSD",
+        license = "BSD",
         keywords = "gmail imap archive",
         url = "https://github.com/apaku/pygmailarchive",
         install_requires = ["IMAPClient"],
@@ -24,6 +24,6 @@ setup(
             "Development Status :: 3 - Alpha",
             "Topic :: Utilities",
             "Environment :: Console",
-            "License :: OSI Approved :: Simplified BSD License",
+            "License :: OSI Approved :: BSD License",
         ],
 )
