@@ -52,6 +52,8 @@ import re
 import unicodedata
 import mailbox
 
+SEENMAILS_FILENAME = "pygmailarchive.seenmails"
+
 def log(message):
     print '[%s]: %s' % (time.strftime('%H:%M:%S'), message)
 
@@ -119,6 +121,36 @@ def createMaildirs(destination, fsfoldername):
         md = md.add_folder(folder)
     return md
 
+def readSeenMails(maildirfolder):
+    # Reads a seenmails-file containing identifiers for the mails that were downloaded already
+    # The file format is rather simple: each line contains the uidvalidity and the uid for a given
+    # message
+    seenMailsFile = os.path.join(maildirfolder, SEENMAILS_FILENAME)
+    seenMailIds = []
+    if os.path.exists(seenMailsFile):
+        seenFile = open(seenMailsFile)
+        try:
+            for line in seenFile.readlines():
+                data = line.split('\0')
+                if len(data) != 2:
+                    raise Exception("Error, invalid line: '%s' in seenmails file: '%s'" %(line, seenMailsFile))
+                # Each line is composed of uidvalidity and uid forming a unique identifier
+                seenMailIds.append((int(data[0]), int(data[1])))
+        finally:
+            seenFile.close()
+    return seenMailIds
+
+def fetchMail(imapcon, uid, targetmd):
+    pass
+
+def writeSeenMails(maildirfolder, seen_mails):
+    if not os.path.exists(maildirfolder):
+        raise Exception("Cannot write seen-mails file, folder '%s' does not exist" %(maildirfolder,))
+    seenFile = open(os.path.join(maildirfolder, SEENMAILS_FILENAME), "w")
+    for (uidvalidity,uid) in seen_mails:
+        seenFile.write("%s\0%s\n" %(uidvalidity, uid))
+    seenFile.close()
+
 def archiveMails(imapcon, destination, excludes, recursiveExcludes):
     log("Archiving mails, excluding: %s, recursivly: %s" %(excludes, recursiveExcludes))
     folders = []
@@ -130,6 +162,20 @@ def archiveMails(imapcon, destination, excludes, recursiveExcludes):
             # Create the mailboxes
             targetmd = createMaildirs(destination, fsfoldername)
             log("Using local maildir: %s - %s" %(fsfoldername,targetmd._path))
+            # Its not nice to access private attributes, but unfortunately there's no API at the moment
+            # which supplies the filesystem path that we need
+            seen_mails = readSeenMails(targetmd._path)
+            select_info = imapcon.select_folder(foldername)
+            uidvalidity = select_info['UIDVALIDITY']
+            log("Fetching mail ids for: 1-%s" %(select_info['EXISTS'],))
+            if select_info['EXISTS'] > 0:
+                uids = imapcon.fetch("1:%s" %(select_info['EXISTS'],), ['UID',])
+                for uid in uids:
+                    if not (uidvalidity,uid) in seen_mails:
+                        log("Fetching Mail: %s" %(uid,))
+                        fetchMail(imapcon, uid, targetmd)
+                        seen_mails.append((uidvalidity,uid))
+                writeSeenMails(targetmd._path, seen_mails)
 
 def main():
     parser = argparse.ArgumentParser(
