@@ -124,7 +124,7 @@ def main():
     parser.add_argument('-c', '--credentials', dest='credentialsfile',
         help='Plain text file specifying username and password. Must contain 2 lines, first one with the username, second with the password. The file needs to be readable only by the current user')
     parser.add_argument('-x', '--exclude', action='append', dest='excludes',
-        default=[], help='Exclude the given tag.')
+        default=['[Google Mail]', '[Google Mail]/Trash', '[Google Mail]/Spam'], help='Exclude the given tag.')
     parser.add_argument('-X', '--exclude-recursive', action='append', dest='recursiveExcludes',
         default=[], help='Exclude the given tag and recursively all tags that are sub-tags of the given one. The tag needs to be given as full path, i.e. to exclude foo/bar/baz and foo/bar/bar you need to specify foo/bar.')
     parser.add_argument('archivedir',
