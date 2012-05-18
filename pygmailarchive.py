@@ -140,8 +140,16 @@ def readSeenMails(maildirfolder):
             seenFile.close()
     return seenMailIds
 
-def fetchMail(imapcon, uid, targetmd):
-    pass
+def fetchMail(imapcon, uid):
+    # Using messages as strings here for performance reasons, no point in converting them to email.Message.Message or
+    # a mailbox.Message instance, since the mailboxes can write out plain-string-emails too.
+    fetch_info = imapcon.fetch(uid, ["BODY.PEEK[]",])
+    log("Fetched Info for uid %s: %s" %(uid, fetch_info))
+    msgstring = fetch_info[uid]["BODY[]"]
+    return msgstring
+
+def storeMessage(maildir, msg):
+    maildir.add(msg)
 
 def writeSeenMails(maildirfolder, seen_mails):
     if not os.path.exists(maildirfolder):
@@ -173,8 +181,14 @@ def archiveMails(imapcon, destination, excludes, recursiveExcludes):
                 for uid in uids:
                     if not (uidvalidity,uid) in seen_mails:
                         log("Fetching Mail: %s" %(uid,))
-                        fetchMail(imapcon, uid, targetmd)
-                        seen_mails.append((uidvalidity,uid))
+                        msg = fetchMail(imapcon, uid)
+                        log("Got Mail Message: %s" %(msg,))
+                        # If a message cannot be stored, skip it instead of failing completely
+                        try:
+                            storeMessage(targetmd, msg)
+                            seen_mails.append((uidvalidity,uid))
+                        except Exception, e:
+                            log("Error storing mail: %s\n%s" %(msg,e))
                 writeSeenMails(targetmd._path, seen_mails)
 
 def main():
