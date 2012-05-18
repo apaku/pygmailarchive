@@ -7,7 +7,9 @@ is seen containing them. This means in particular that the "All Mail" folder
 will not necessarily contain all messages in case the mails have other labels.
 This tool will not download the Spam or Trash folders at the moment.
 This tool will not delete mails locally that have been deleted remotely.
-
+"""
+# Separate doc-comment for the license so its not part of the --help output
+"""
 Copyright (c) 2012, Andreas Pakulat <apaku@gmx.de>
 All rights reserved.
 
