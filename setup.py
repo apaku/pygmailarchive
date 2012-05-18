@@ -20,6 +20,7 @@ setup(
         url = "https://github.com/apaku/pygmailarchive",
         install_requires = ["IMAPClient"],
         scripts = ["pygmailarchive.py"],
+        data_files = [('share/doc/pygmailarchive', ['README','LICENSE'])],
         long_description = read('README'),
         classifiers = [
             "Development Status :: 3 - Alpha",
