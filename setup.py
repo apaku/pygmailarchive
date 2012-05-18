@@ -10,12 +10,12 @@ def read(fname):
 
 setup(
         name = "pygmailarchive",
-        version = "0.2.0",
+        version = "0.3.0",
         author = "Andreas Pakulat",
         author_email = "apaku@gmx.de",
         description = ("An utility to archive Mails from GMail accounts."),
         license = "BSD",
-        download_url = "https://github.com/downloads/apaku/pygmailarchive/pygmailarchive-0.2.0.tar.gz",
+        download_url = "https://github.com/downloads/apaku/pygmailarchive/pygmailarchive-0.3.0.tar.gz",
         keywords = "gmail imap archive",
         url = "https://github.com/apaku/pygmailarchive",
         install_requires = ["IMAPClient"],

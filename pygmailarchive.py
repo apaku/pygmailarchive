@@ -37,7 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #TODO: Improve handling of mails in folders and in All Mail
 #TODO: Optionally download spam and/or trash
 
-__version__ = '0.2.0'
+__version__ = '0.3.0'
 
 import email
 import email.Header
