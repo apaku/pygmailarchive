@@ -55,9 +55,11 @@ import unicodedata
 import mailbox
 
 SEENMAILS_FILENAME = "pygmailarchive.seenmails"
+VERBOSE = False
 
-def log(message):
-    print '[%s]: %s' % (time.strftime('%H:%M:%S'), message)
+def log(message, verbose=True):
+    if verbose and VERBOSE or not verbose:
+        print '[%s]: %s' % (time.strftime('%H:%M:%S'), message)
 
 def isUserReadWritableOnly(mode):
     return bool(stat.S_IRUSR & mode) and not (
@@ -97,11 +99,11 @@ def connectToGMail(username, password):
     # Fetch datetime info with timezone info
     imapcon.normalise_times = False
     imapcon.login(username, password)
-    log("Logged in on imap.gmail.com, capabilities: %s" %(imapcon.capabilities(),))
+    log("Logged in on imap.gmail.com, capabilities: %s" %(imapcon.capabilities(),), False)
     return imapcon
 
 def disconnectFromGMail(imapcon):
-    log("Logging out from imap.gmail.com")
+    log("Logging out from imap.gmail.com", False)
     imapcon.logout()
 
 def setupArchiveDir(archivedir):
@@ -162,7 +164,7 @@ def writeSeenMails(maildirfolder, seen_mails):
     seenFile.close()
 
 def archiveMails(imapcon, destination, excludes, recursiveExcludes):
-    log("Archiving mails, excluding: %s, recursivly: %s" %(excludes, recursiveExcludes))
+    log("Archiving mails, excluding: %s, recursivly: %s" %(excludes, recursiveExcludes), False)
     folders = []
     for folder in imapcon.list_folders():
         if not(folder[2] in excludes or len([x for x in recursiveExcludes if folder[2].startswith(x)]) > 0):
@@ -171,7 +173,7 @@ def archiveMails(imapcon, destination, excludes, recursiveExcludes):
             fsfoldername = [makeFSCompatible(fname) for fname in foldername.split(foldersep)]
             # Create the mailboxes
             targetmd = createMaildirs(destination, fsfoldername)
-            log("Using local maildir: %s - %s" %(fsfoldername,targetmd._path))
+            log("Using local maildir: %s - %s" %(fsfoldername,targetmd._path), False)
             # Its not nice to access private attributes, but unfortunately there's no API at the moment
             # which supplies the filesystem path that we need
             seen_mails = readSeenMails(targetmd._path)
@@ -190,7 +192,7 @@ def archiveMails(imapcon, destination, excludes, recursiveExcludes):
                             storeMessage(targetmd, msg)
                             seen_mails.append((uidvalidity,uid))
                         except Exception, e:
-                            log("Error storing mail: %s\n%s" %(msg,e))
+                            log("Error storing mail: %s\n%s" %(msg,e), False)
                 writeSeenMails(targetmd._path, seen_mails)
 
 def main():
